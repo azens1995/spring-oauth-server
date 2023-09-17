@@ -31,11 +31,10 @@ public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
     }
 
     // Setting up ClientDetailsService instance
-    @Override
+    // Method 1
+    /*@Override
     public void configure(ClientDetailsServiceConfigurer clients) throws
         Exception {
-        /*
-        // Method 1
         // Creates an instance using the ClientDetailsService implementation
         var service = new InMemoryClientDetailsService();
 
@@ -51,6 +50,22 @@ public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
 
         // Configure client details service for use by our authorization server
         clients.withClientDetails(service);
-        */
+    }*/
+
+    // Method 2
+    @Override
+    public void configure(ClientDetailsServiceConfigurer clients) throws
+        Exception {
+        clients.inMemory()
+            .withClient("client")
+            .secret("secret")
+            .authorizedGrantTypes("password")
+            .scopes("read");
+    }
+
+    @Override
+    public void configure(AuthorizationServerSecurityConfigurer security) throws
+        Exception {
+        security.checkTokenAccess("isAuthenticated()");
     }
 }
