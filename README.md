@@ -4,4 +4,4 @@ This is a learning repository for creating OAuth2.0 Authorization Server with Sp
 
 ## Features
 
-1. Grant using Password
+1. Grant using Auth Code
