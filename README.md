@@ -32,6 +32,7 @@ curl -v -XPOST -u client:secret "http://localhost:8080/oauth/token?grant_type=au
 {
     "access_token":"0fa3b7d3-e2d7-4c53-8121-bd531a870635",
     "token_type":"bearer",
+    "refresh_token":"77d5e36a-d114-4896-871f-a6502c1c3f1a",
     "expires_in":43052,
     "scope":"read"
 }
