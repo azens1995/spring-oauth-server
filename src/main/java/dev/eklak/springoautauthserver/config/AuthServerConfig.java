@@ -63,10 +63,4 @@ public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
             .scopes("read")
             .redirectUris("http://localhost:9090/home");
     }
-
-//    @Override
-//    public void configure(AuthorizationServerSecurityConfigurer security) throws
-//        Exception {
-//        security.checkTokenAccess("isAuthenticated()");
-//    }
 }
