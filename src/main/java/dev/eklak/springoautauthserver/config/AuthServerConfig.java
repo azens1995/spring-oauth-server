@@ -1,24 +1,36 @@
 package dev.eklak.springoautauthserver.config;
 
-import java.util.List;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.client.BaseClientDetails;
-import org.springframework.security.oauth2.provider.client.InMemoryClientDetailsService;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
 // EnableAuthorizationServer instructs Spring Boot to enable configuration specific
 // to the OAuth 2 authorization server
 @Configuration
 @EnableAuthorizationServer
 public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
+
+    @Value("${password}")
+    private String password;
+
+    @Value("${privatekey}")
+    private String privateKey;
+
+    @Value("${alias}")
+    private String alias;
 
     // Injects the AuthorizationManager from the context
     @Autowired
@@ -27,45 +39,37 @@ public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
     @Override
     public void configure(
         AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-        endpoints.authenticationManager(authenticationManager);
+        endpoints
+            .authenticationManager(authenticationManager)
+            .tokenStore(tokenStore())
+            .accessTokenConverter(jwtAccessTokenConverter());
     }
 
-    // Setting up ClientDetailsService instance
-    // Method 1
-    /*@Override
-    public void configure(ClientDetailsServiceConfigurer clients) throws
-        Exception {
-        // Creates an instance using the ClientDetailsService implementation
-        var service = new InMemoryClientDetailsService();
-
-        // Creates an instance of ClientDetails and set the required information
-        var cd = new BaseClientDetails();
-        cd.setClientId("client");
-        cd.setClientSecret("secret");
-        cd.setScope(List.of("read"));
-        cd.setAuthorizedGrantTypes(List.of("password"));
-
-        // Adds the client details to InMemoryClientDetailsService
-        service.setClientDetailsStore(Map.of("client", cd));
-
-        // Configure client details service for use by our authorization server
-        clients.withClientDetails(service);
-    }*/
-
-    // Method 2
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws
         Exception {
         clients.inMemory()
             .withClient("client")
             .secret("secret")
-            .authorizedGrantTypes("password")
+            .authorizedGrantTypes("password", "refresh_token")
             .scopes("read");
     }
 
-    @Override
-    public void configure(AuthorizationServerSecurityConfigurer security) throws
-        Exception {
-        security.checkTokenAccess("isAuthenticated()");
+    @Bean
+    public TokenStore tokenStore() {
+        // Creates a token store with an access token converter associated to it
+        return new JwtTokenStore(jwtAccessTokenConverter());
+    }
+
+    @Bean
+    public JwtAccessTokenConverter jwtAccessTokenConverter() {
+        var converter = new JwtAccessTokenConverter();
+        // Creates a KeyStoreFactory object to retrieve the private key file from the classpath
+        KeyStoreKeyFactory keyStoreKeyFactory =
+            new KeyStoreKeyFactory(new ClassPathResource(privateKey), password.toCharArray());
+        // Use the keystoreKeyFactory object to retrieve the key pair
+        // and sets the key pair to the JWTAccessTokenConverter object
+        converter.setKeyPair(keyStoreKeyFactory.getKeyPair(alias));
+        return converter;
     }
 }
