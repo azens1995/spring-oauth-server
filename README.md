@@ -4,13 +4,15 @@ This is a learning repository for creating OAuth2.0 Authorization Server with Sp
 
 ## Features
 
-1. Grant using Password
+1. Grant Using Auth Code
+2. Token Validation with JWT Token
 
 ## Description
 
-We have added the new credentials for the resource server using the `and()` while creating the clientcredentials.
-Check line `67` and `68` in `AuthServerConfig` where we have added the credentials for the resource server.
-This credentials will be used to access the auth server's `/oaut/check_token` endpoint.
+1. Add the `jwt.key` with key in the `application.properties`. This key will be used as JWT signing key.
+2. Add Bean for JWTAccessTokenConverter with the jwt key for the signing.
+3. Create bean of TokenStore to generate the token using the JWTTokenStore with access token converter as the field for it's converter.
+4. Add token store and token converter in the endpoints manager.
 
 ## Usage
 
@@ -21,25 +23,11 @@ curl -v -XPOST -u client:secret "http://localhost:8080/oauth/token?grant_type=pa
 This will return the following response:
 ```curl
 {
-    "access_token":"0783e67b-99e4-43b7-b052-8bec532d9bbe",
+    "access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTUxNDYwNTYsInVzZXJfbmFtZSI6ImVrbGFrIiwiYXV0aG9yaXRpZXMiOlsicmVhZCJdLCJqdGkiOiIxYzQ4MDJkNC04NTZhLTRiYmEtODE2NC0xNzU1NTk0ZDVhODIiLCJjbGllbnRfaWQiOiJjbGllbnQiLCJzY29wZSI6WyJyZWFkIl19.SroAvG-Mu8AURrlcE69dTnPmNPryFxQMpa0sC1C60ao",
     "token_type":"bearer",
+    "refresh_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJla2xhayIsInNjb3BlIjpbInJlYWQiXSwiYXRpIjoiMWM0ODAyZDQtODU2YS00YmJhLTgxNjQtMTc1NTU5NGQ1YTgyIiwiZXhwIjoxNjk3Njk0ODU2LCJhdXRob3JpdGllcyI6WyJyZWFkIl0sImp0aSI6IjE5ODU2YTdhLWZhMjYtNDUwNi04Y2E5LTFmN2RlNjY4ODk2ZSIsImNsaWVudF9pZCI6ImNsaWVudCJ9.JpoRsRTDO3pP5Ab8GTWZOWWM7-cVXAffZxR5P87h3gY",
     "expires_in":43199,
-    "scope":"read"
-}
-```
-
-2. Call the `/oauth/check_token` endpoint to find the details about the access token
-```curl
-curl -XPOST -u resourceserver:resourceserversecret "http://localhost:8080/oauth/check_token?token=0783e67b-99e4-43b7-b052-8bec532d9bbe" 
-```
-It will produce following response:
-```curl
-{
-    "active":true,
-    "exp":1694977540,
-    "user_name":"eklak",
-    "authorities":["read"],
-    "client_id":"client",
-    "scope":["read"]
+    "scope":"read",
+    "jti":"1c4802d4-856a-4bba-8164-1755594d5a82"
 }
 ```
