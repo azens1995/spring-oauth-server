@@ -1,5 +1,6 @@
 package dev.eklak.springoautauthserver.config;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +12,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
@@ -39,10 +41,17 @@ public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
     @Override
     public void configure(
         AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+        TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
+        // Adds two token enhancer object to the list
+        var tokenEnhancers = List.of(new CustomTokenEnhancer(), jwtAccessTokenConverter());
+        // Adds token enhancers list to the chain
+        tokenEnhancerChain.setTokenEnhancers(tokenEnhancers);
+
         endpoints
             .authenticationManager(authenticationManager)
             .tokenStore(tokenStore())
-            .accessTokenConverter(jwtAccessTokenConverter());
+            // Configures the token enhancer object
+            .tokenEnhancer(tokenEnhancerChain);
     }
 
     @Override
