@@ -52,7 +52,11 @@ public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
             .withClient("client")
             .secret("secret")
             .authorizedGrantTypes("password", "refresh_token")
-            .scopes("read");
+            .scopes("read")
+            .and()
+            // Add the client credentials used by resource server to retrieve public key
+            .withClient("rclient")
+            .secret("rsecret");
     }
 
     @Bean
@@ -71,5 +75,14 @@ public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
         // and sets the key pair to the JWTAccessTokenConverter object
         converter.setKeyPair(keyStoreKeyFactory.getKeyPair(alias));
         return converter;
+    }
+
+    @Override
+    public void configure(
+        AuthorizationServerSecurityConfigurer security) {
+        // Configures the auth server to expose the endpoints for the public key
+        // for any requests authenticated with valid client credentials
+        security.tokenKeyAccess
+            ("isAuthenticated()");
     }
 }
